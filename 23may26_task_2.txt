@@ -1,0 +1,122 @@
+#(1)List the Employee Name, their Department Name, and the Location Name for all employees.
+
+SELECT e.employee_name, d.dept_name, d.location_id
+FROM Employees e
+JOIN Departments d ON e.dept_id = d.dept_id;
+
+#(2)Find the names of Employees who have worked on a project with Client Name 'GlobalTech Solutions'. List the Employee Name and Project Name.
+
+SELECT e.employee_name, p.project_name
+FROM Employees e
+JOIN Assignments a ON e.employee_id = a.employee_id
+JOIN Projects p ON a.project_id = p.project_id
+WHERE p.client_name = 'GlobalTech Solutions';
+
+#(3)List all Departments that have no Employees currently assigned to them.
+
+SELECT dept_name 
+FROM Departments
+WHERE dept_id NOT IN (
+    SELECT DISTINCT dept_id FROM Employees WHERE dept_id IS NOT NULL
+);
+
+#(4)Show the Manager Name, the Department Name they manage, and the total number of direct reports they have.
+
+SELECT m.employee_name, d.dept_name, COUNT(e.employee_id)
+FROM Employees e
+JOIN Employees m ON e.manager_id = m.employee_id
+JOIN Departments d ON m.dept_id = d.dept_id
+GROUP BY m.employee_name, d.dept_name;
+
+#(5)Calculate the Average Hours Worked per Employee across all projects. List the Employee Name and the average hours.
+
+SELECT e.employee_name, AVG(a.hours_worked)
+FROM Employees e
+JOIN Assignments a ON e.employee_id = a.employee_id
+GROUP BY e.employee_name;
+
+#(6)Find the Department Name(s) that have an average salary above the company-wide average salary
+
+SELECT d.dept_name
+FROM Departments d
+JOIN Employees e ON d.dept_id = e.dept_id
+GROUP BY d.dept_name
+HAVING AVG(e.salary) > (SELECT AVG(salary) FROM Employees);
+
+#(7)Identify the Client Name(s) whose projects have a total combined hours worked exceeding 500 hours.
+
+SELECT p.client_name
+FROM Projects p
+JOIN Assignments a ON p.project_id = a.project_id
+GROUP BY p.client_name
+HAVING SUM(a.hours_worked) > 500;
+
+#(8)Calculate the total number of employees assigned to each Project, but only include projects that have more than 5 employees assigned.
+
+SELECT project_id, COUNT(employee_id)
+FROM Assignments
+GROUP BY project_id
+HAVING COUNT(employee_id) > 5;
+
+#(9)Retrieve the Department Name(s) that have employees assigned to more than one project.
+
+SELECT DISTINCT d.dept_name
+FROM Departments d
+JOIN Employees e ON d.dept_id = e.dept_id
+JOIN Assignments a ON e.employee_id = a.employee_id
+GROUP BY d.dept_name, e.employee_id
+HAVING COUNT(DISTINCT a.project_id) > 1;
+
+#(10)Write a query to list the Employee Name and Project Name for any employee who has worked less than 10 hours on a project.
+
+SELECT e.employee_name, p.project_name
+FROM Employees e
+JOIN Assignments a ON e.employee_id = a.employee_id
+JOIN Projects p ON a.project_id = p.project_id
+WHERE a.hours_worked < 10;
+
+#(11)Find the Project Name(s) that have no assigned employees.
+
+SELECT project_name 
+FROM Projects
+WHERE project_id NOT IN (SELECT DISTINCT project_id FROM Assignments);
+
+#(12)Select the Employee Name(s) whose salary is greater than the maximum salary in their own department.
+
+SELECT e1.employee_name 
+FROM Employees e1
+WHERE e1.salary > (
+    SELECT MAX(e2.salary) 
+    FROM Employees e2 
+    WHERE e2.dept_id = e1.dept_id AND e2.employee_id <> e1.employee_id
+);
+
+#(13)Assuming the Assignments table has a start_date column, find the Employee Name and their oldest project start date.
+
+SELECT e.employee_name, MIN(a.start_date)
+FROM Employees e
+JOIN Assignments a ON e.employee_id = a.employee_id
+GROUP BY e.employee_name;
+
+#(14)Write a MySQL query using the DATE_FORMAT function to list all projects that were active in the year 2023.
+
+SELECT project_name 
+FROM Projects
+WHERE DATE_FORMAT(start_date, '%Y') = '2023';
+
+#(15)Use the MySQL-specific IFNULL function to list all Employee Names. If an employee has no manager, display "CEO" instead of NULL.
+
+SELECT e.employee_name, IFNULL(m.employee_name, 'CEO') AS manager_name
+FROM Employees e
+LEFT JOIN Employees m ON e.manager_id = m.employee_id;
+
+#(16)Find the Employee Name(s) who are assigned to the same projects as Employee ID 101.
+
+SELECT DISTINCT e.employee_name
+FROM Employees e
+JOIN Assignments a ON e.employee_id = a.employee_id
+WHERE a.project_id IN (SELECT project_id FROM Assignments WHERE employee_id = 101) 
+  AND e.employee_id <> 101;
+
+
+
